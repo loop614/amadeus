@@ -1,0 +1,39 @@
+<table>
+   {% for error in errors %}
+       <tr>
+           <td>{{error.message}}</td>
+       </tr>
+   {% endfor %}
+</table>
+
+<table>
+   {% for flight in flights %}
+       <tr>
+       Flight data:
+       </tr>
+       <tr>
+           <td>{{flight.departure}}</td>
+           <td>{{flight.destination}}</td>
+           <td>{{flight.outgoing_date}}</td>
+           <td>{{flight.return_date}}</td>
+           <td>{{flight.passenger_count}}</td>
+           <td>{{flight.price}}</td>
+           <td>{{flight.currency}}</td>
+       </tr>
+
+       {% for itinerary in flight.itineraries %}
+           <tr>
+           Connection data:
+           </tr>
+           <tr>
+               <td>{{itinerary.departure}}</td>
+               <td>{{itinerary.destination}}</td>
+               <td>{{itinerary.outgoing_date}}</td>
+               <td>{{itinerary.return_date}}</td>
+               <td>{{itinerary.passenger_count}}</td>
+               <td>{{itinerary.price}}</td>
+               <td>{{itinerary.currency}}</td>
+           </tr>
+       {% endfor %}
+   {% endfor %}
+</table>
