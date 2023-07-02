@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 from django.db import models
 
@@ -13,7 +13,7 @@ class Iata(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
 
 
-def get_iata_pks_by_code(iata_code) -> List[int]:
+def get_iata_pks_by_code(iata_code) -> list[int]:
     iatas = Iata.objects.filter(code=iata_code)
     if iatas.exists():
         return [iata.id for iata in iatas]

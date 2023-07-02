@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from django.forms import model_to_dict
 
 from connection.models import Connection
@@ -10,8 +12,12 @@ def parse_amadeus(request_dict, amadeus_json):
 
     for flight_offer in amadeus_json.get('data', []):
         if flight_offer['type'] == 'flight-offer':
-            iata_departure = get_iata_pks_by_code(request_dict['departure_iata'])
-            iata_destination = get_iata_pks_by_code(request_dict['destination_iata'])
+            iata_departure = get_iata_pks_by_code(
+                request_dict['departure_iata'],
+            )
+            iata_destination = get_iata_pks_by_code(
+                request_dict['destination_iata'],
+            )
 
             for fk_departure in iata_departure:
                 for fk_destination in iata_destination:
@@ -20,7 +26,7 @@ def parse_amadeus(request_dict, amadeus_json):
                         fk_destination,
                         flight_offer,
                         request_dict,
-                        response_json
+                        response_json,
                     )
 
     return response_json
@@ -36,14 +42,16 @@ def create_flight_per_iata(fk_departure, fk_destination, flight_offer, request_d
         currency=currency,
         outgoing_date=request_dict['outgoing_date'],
         return_date=request_dict['return_date'],
-        passenger_count=request_dict['passenger_count']
+        passenger_count=request_dict['passenger_count'],
     )
     flight.save()
     response_json['flights'][flight.id] = model_to_dict(flight)
     response_json['flights'][flight.id]['connections'] = []
     for itinerary in flight_offer['itineraries']:
         for segment in itinerary['segments']:
-            response_json = create_connection_per_segment(flight, segment, response_json)
+            response_json = create_connection_per_segment(
+                flight, segment, response_json,
+            )
 
     return response_json
 
@@ -61,12 +69,18 @@ def create_connection_per_segment(flight, segment, response_json):
                 fk_connection_destination_id=arrival_fk_iata,
                 duration=segment.get('duration'),
                 departure_at=segment.get('departure', {}).get('at'),
-                departure_terminal=segment.get('departure', {}).get('terminal'),
+                departure_terminal=segment.get(
+                    'departure', {},
+                ).get('terminal'),
                 arrival_at=segment.get('arrival', {}).get('at'),
                 arrival_terminal=segment.get('arrival', {}).get('terminal'),
-                number_of_stops=segment.get('arrival', {}).get('numberOfStops'),
+                number_of_stops=segment.get(
+                    'arrival', {},
+                ).get('numberOfStops'),
             )
             connection.save()
-            response_json['flights'][flight.id]['connections'].append(model_to_dict(connection))
+            response_json['flights'][flight.id]['connections'].append(
+                model_to_dict(connection),
+            )
 
     return response_json

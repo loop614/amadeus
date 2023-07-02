@@ -4,15 +4,14 @@ Amadeus API consumer
 
 ## Requirements
 - docker (with compose)
+- make
 
 ## QUICK START
 ```console
-docker compose up
-
-docker compose exec amadeus_python python manage.py makemigrations &&
-docker compose exec amadeus_python python manage.py migrate --noinput
+$ docker compose up
+$ make migrate # while composer running
 ```
-visit 
+visit
 - http://localhost:12345/flights/?departure_iata=HSV&destination_iata=BHM&outgoing_date=2023-10-10&return_date=2023-11-10&round_trip=1&passenger_count=1&currency=EUR
 
 ## Notice

@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import os
+
 import requests
 
 from client.auth_endpoints import amadeus_auth
@@ -9,7 +12,8 @@ class IataNotFoundError(Exception):
 
 
 def get_location_by_iata(iata_code):
-    url = os.environ.get('AMADEUS_API_BASE_URL') + os.environ.get('AMADEUS_API_REFERENCE_DATA_LOCATIONS')
+    url = os.environ.get('AMADEUS_API_BASE_URL') + \
+        os.environ.get('AMADEUS_API_REFERENCE_DATA_LOCATIONS')
     headers = {'Authorization': amadeus_auth()}
 
     # TODO: check .env.dev
@@ -35,8 +39,8 @@ def mock_hsv_iata():
         'data': [{
             'iataCode': 'HSV',
             'name': 'something with HSV',
-            'detailedName': 'details of HSV'
-        }]
+            'detailedName': 'details of HSV',
+        }],
     }
 
 
@@ -45,6 +49,6 @@ def mock_bhm_iata():
         'data': [{
             'iataCode': 'BHM',
             'name': 'something with BHM',
-            'detailedName': 'details of BHM'
-        }]
+            'detailedName': 'details of BHM',
+        }],
     }
