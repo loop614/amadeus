@@ -1,4 +1,5 @@
 from django.template.response import TemplateResponse
+from django.http import HttpResponseBadRequest
 
 from client.iata_endpoints import IataNotFoundError
 from client.flight_endpoints import amadeus_search_flights
@@ -23,6 +24,7 @@ def flights(request):
             data['errors'].append({'message': f'Bad request, missing {request_key}'})
 
     request_dict['return_date'] = request.GET.get('return_date', default=None)
+
     try:
         request_dict['departure_iata_pks'] = get_iata_pks_by_code(request_dict['departure_iata'])
         request_dict['destination_iata_pks'] = get_iata_pks_by_code(request_dict['destination_iata'])
@@ -30,7 +32,7 @@ def flights(request):
         data['errors'].append({'message': 'IATA not found error'})
 
     if len(data['errors']) > 0:
-        return TemplateResponse(request, 'flight/index.html', context=data)
+        return HttpResponseBadRequest(request, 'flight/index.html', context=data)
 
     flights = Connection.objects.select_related('fk_flight').filter(
         fk_flight__fk_departure__in=request_dict['departure_iata_pks'],
@@ -45,5 +47,6 @@ def flights(request):
         flights = amadeus_search_flights(request_dict)
 
     data['flights'] = flights
-    print(data)
+    data['request_dict'] = request_dict
+
     return TemplateResponse(request, 'flight/index.html', context=data)

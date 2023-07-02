@@ -12,7 +12,13 @@ def amadeus_auth():
         'client_secret': os.environ.get('AMADEUS_API_SECRET')
     }
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    response = requests.post(url=auth_url, data=data, headers=headers)
-    response_json = response.json()
+    # TODO: check .env.dev AMADEUS_API_KEY and AMADEUS_API_SECRET
+    # response = requests.post(url=auth_url, data=data, headers=headers)
+    # response_json = response.json()
+
+    response_json = {
+        'token_type': 'token_type',
+        'access_token': 'access_token'
+    }
 
     return response_json['token_type'] + ' ' + response_json['access_token']
