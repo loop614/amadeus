@@ -1,0 +1,33 @@
+{
+  "data": [
+    {
+      "type": "flight-offer",
+      "price": {
+        "total": 120,
+        "currency": "EUR"
+      },
+      "itineraries": [
+        {
+          "segments": [
+            {
+              "departure": {
+                "iataCode": "HSV",
+                "at": "2022-12-30 14:00",
+                "terminal": 1,
+                "numberOfStops": 2
+              },
+              "duration": "",
+              "arrival": {
+                "iataCode": "BHM",
+                "at": "2023-01-01 14:00",
+                "terminal": 2,
+                "numberOfStops": 2
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

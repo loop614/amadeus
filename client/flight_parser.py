@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from django.forms import model_to_dict
 
+import iata.models as iata_model
 from connection.models import Connection
 from flight.models import Flight
-from iata.models import get_iata_pks_by_code
 
 
 def parse_amadeus(request_dict, amadeus_json):
@@ -12,10 +12,10 @@ def parse_amadeus(request_dict, amadeus_json):
 
     for flight_offer in amadeus_json.get('data', []):
         if flight_offer['type'] == 'flight-offer':
-            iata_departure = get_iata_pks_by_code(
+            iata_departure = iata_model.get_iata_pks_by_code(
                 request_dict['departure_iata'],
             )
-            iata_destination = get_iata_pks_by_code(
+            iata_destination = iata_model.get_iata_pks_by_code(
                 request_dict['destination_iata'],
             )
 
@@ -32,7 +32,13 @@ def parse_amadeus(request_dict, amadeus_json):
     return response_json
 
 
-def create_flight_per_iata(fk_departure, fk_destination, flight_offer, request_dict, response_json):
+def create_flight_per_iata(
+        fk_departure,
+        fk_destination,
+        flight_offer,
+        request_dict,
+        response_json,
+):
     total_price = flight_offer.get('price', {}).get('total')
     currency = flight_offer.get('price', {}).get('currency')
     flight = Flight(
@@ -59,8 +65,8 @@ def create_flight_per_iata(fk_departure, fk_destination, flight_offer, request_d
 def create_connection_per_segment(flight, segment, response_json):
     connection_departure = segment.get('departure', {}).get('iataCode')
     connection_arrival = segment.get('arrival', {}).get('iataCode')
-    departure_fks_iata = get_iata_pks_by_code(connection_departure)
-    arrival_fks_iata = get_iata_pks_by_code(connection_arrival)
+    departure_fks_iata = iata_model.get_iata_pks_by_code(connection_departure)
+    arrival_fks_iata = iata_model.get_iata_pks_by_code(connection_arrival)
     for departure_fk_iata in departure_fks_iata:
         for arrival_fk_iata in arrival_fks_iata:
             connection = Connection(

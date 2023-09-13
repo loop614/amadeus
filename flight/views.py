@@ -3,14 +3,14 @@ from __future__ import annotations
 from django.http import HttpResponseBadRequest
 from django.template.response import TemplateResponse
 
-from client.flight_endpoints import amadeus_search_flights
+import client.flight_endpoints as flight_endpoints
+import iata.models as iata_models
 from client.iata_endpoints import IataNotFoundError
 from connection.models import Connection
-from iata.models import get_iata_pks_by_code
 
 
 def flights(request):
-    data = {'errors': []}
+    context_data = {'errors': []}
     request_keys = [
         'departure_iata',
         'destination_iata',
@@ -23,7 +23,7 @@ def flights(request):
     for request_key in request_keys:
         request_dict[request_key] = request.GET.get(request_key)
         if not request_dict[request_key]:
-            data['errors'].append(
+            context_data['errors'].append(
                 {'message': f'Bad request, missing {request_key}'},
             )
 
@@ -31,19 +31,20 @@ def flights(request):
 
     if request_dict.get('departure_iata', False) and request_dict.get('destination_iata', False):
         try:
-            request_dict['departure_iata_pks'] = get_iata_pks_by_code(
+            request_dict['departure_iata_pks'] = iata_models.get_iata_pks_by_code(
                 request_dict['departure_iata'],
             )
-            request_dict['destination_iata_pks'] = get_iata_pks_by_code(
+            request_dict['destination_iata_pks'] = iata_models.get_iata_pks_by_code(
                 request_dict['destination_iata'],
             )
         except IataNotFoundError:
-            data['errors'].append({'message': 'IATA not found error'})
+            context_data['errors'].append({'message': 'IATA not found error'})
 
-    if len(data['errors']) > 0:
-        return HttpResponseBadRequest(', <br>'.join(one['message'] for one in data['errors']))
+    if len(context_data['errors']) > 0:
+        return HttpResponseBadRequest(', <br>'.join(one['message'] for one in context_data['errors']))
 
-    flights = Connection.objects.select_related('fk_flight').filter(
+    context_data['data_source'] = 'basement'
+    flight_data = Connection.objects.select_related('fk_flight').filter(
         fk_flight__fk_departure__in=request_dict['departure_iata_pks'],
         fk_flight__fk_destination__in=request_dict['destination_iata_pks'],
         fk_flight__outgoing_date=request_dict['outgoing_date'],
@@ -52,10 +53,11 @@ def flights(request):
         fk_flight__currency=request_dict['currency'],
     ).values()
 
-    if not flights.count():
-        flights = amadeus_search_flights(request_dict)
+    if not flight_data.count():
+        context_data['data_source'] = 'other peoples basement'
+        flight_data = flight_endpoints.amadeus_search_flights(request_dict)
 
-    data['flights'] = flights
-    data['request_dict'] = request_dict
+    context_data['flight_data'] = flight_data
+    context_data['request_dict'] = request_dict
 
-    return TemplateResponse(request, 'flight/index.html', context=data)
+    return TemplateResponse(request, 'flight/index.html', context=context_data)

@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+import json
 import os
 
-import requests
-
-from client.auth_endpoints import amadeus_auth
-from client.flight_parser import parse_amadeus
+import client.auth_endpoints as auth
+import client.flight_parser as parser
 
 
 class FlightNotFoundError(Exception):
@@ -15,50 +14,23 @@ class FlightNotFoundError(Exception):
 def amadeus_search_flights(request_dict):
     url = os.environ.get('AMADEUS_API_BASE_URL') + \
         os.environ.get('AMADEUS_API_SHOPPING_FLIGHT_OFFERS')
-    headers = {'Authorization': amadeus_auth()}
+    headers = {'Authorization': auth.amadeus_auth()}
     amadeus_request_dict = map_amadeus_request(request_dict)
+    # usual way would be to send a request to amadeus
     # response = requests.get(url, params=amadeus_request_dict, headers=headers)
     # response_json = response.json()
+
     response_json = mock_response_json()
     for error in response_json.get('errors', []):
-        if error['status'] > 400:
+        if error['status'] < 500 or error['status'] > 400:
             raise FlightNotFoundError
 
-    return parse_amadeus({**request_dict, **amadeus_request_dict}, response_json)
+    return parser.parse_amadeus({**request_dict, **amadeus_request_dict}, response_json)
 
 
 def mock_response_json():
-    return {
-        'data': [{
-            'type': 'flight-offer',
-            'price': {
-                'total': 120,
-                'currency': 'EUR',
-            },
-            'itineraries': [
-                {
-                    'segments': [
-                        {
-                            'departure': {
-                                'iataCode': 'HSV',
-                                'at': '2022-12-30 14:00',
-                                'terminal': 1,
-                                'numberOfStops': 2,
-                            },
-                            'duration': '',
-                            'arrival': {
-                                'iataCode': 'BHM',
-                                'at': '2023-01-01 14:00',
-                                'terminal': 2,
-                                'numberOfStops': 2,
-                            },
-                        },
-                    ],
-                },
-            ],
-        }],
-        'errors': [],
-    }
+    with open('client/amadeus_mock/shopping/flight-offers/bhm-hsv.json') as f_in:
+        return json.load(f_in)
 
 
 def map_amadeus_request(request_dict):
